@@ -2,20 +2,21 @@
 <html lang="mn">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Зарлагын баримт</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#171410" />
+    <title>Тайлан</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect rx='8' width='32' height='32' fill='%23171410'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='15' fill='%23e8c9a0'%3E₮%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./assets/css/style.css" />
+    <link rel="stylesheet" href="./assets/css/style.css?v=4" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <section id="login-view" class="login-view">
       <div class="login-hero">
-        <span class="eyebrow">Expense ledger</span>
-        <h1>Зарлагын<br />баримт</h1>
+        <span class="eyebrow">Зарлагын тайлан</span>
+        <h1>Тайлан</h1>
         <p>Төсөв, гүйцэтгэл, гүйлгээг нэг самбараас хянах</p>
         <ul>
           <li>Google Sheet-тэй шууд холбоотой</li>
@@ -24,21 +25,23 @@
         </ul>
       </div>
       <div class="login-card">
-        <div class="login-mark">₮</div>
-        <h2>Нэвтрэх</h2>
-        <p>Бүртгэлтэй хэрэглэгчээр орно уу</p>
-        <form id="login-form">
-          <label>
-            Хэрэглэгчийн нэр
-            <input id="login-user" name="username" autocomplete="username" required />
-          </label>
-          <label>
-            Нууц үг
-            <input id="login-pass" name="password" type="password" autocomplete="current-password" required />
-          </label>
-          <p id="login-error" class="login-error" hidden></p>
-          <button type="submit">Үргэлжлүүлэх</button>
-        </form>
+        <div class="login-box">
+          <div class="login-mark">₮</div>
+          <h2>Нэвтрэх</h2>
+          <p>Бүртгэлтэй хэрэглэгчээр орно уу</p>
+          <form id="login-form">
+            <label>
+              Хэрэглэгчийн нэр
+              <input id="login-user" name="username" autocomplete="username" required />
+            </label>
+            <label>
+              Нууц үг
+              <input id="login-pass" name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <p id="login-error" class="login-error" hidden></p>
+            <button type="submit">Үргэлжлүүлэх</button>
+          </form>
+        </div>
       </div>
     </section>
 
@@ -47,21 +50,32 @@
         <div class="brand">
           <span class="login-mark sm">₮</span>
           <div>
-            <strong>Зарлагын баримт</strong>
-            <em>Хяналтын самбар</em>
+            <strong>Тайлан</strong>
+            <em id="whoami"></em>
           </div>
         </div>
-        <nav class="tabs" id="tabs">
-          <button data-tab="overview" class="active">Ерөнхий</button>
-          <button data-tab="main">Үндсэн</button>
-          <button data-tab="server">Сервер</button>
-          <button data-tab="fitout">Тохижилт</button>
-          <button data-tab="other">Бусад</button>
+        <nav class="tabs" id="tabs" aria-label="Хэсгүүд">
+          <button type="button" data-tab="overview" class="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>Ерөнхий</span>
+          </button>
+          <button type="button" data-tab="main">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12"/><path d="M8 20h8M12 16v4"/></svg>
+            <span>Үндсэн</span>
+          </button>
+          <button type="button" data-tab="server">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="6"/><rect x="3" y="15" width="18" height="6"/><path d="M7 6h.01M7 18h.01"/></svg>
+            <span>Сервер</span>
+          </button>
+          <button type="button" data-tab="fitout">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l3 3-8 8H6v-3l8-8z"/><path d="M12 5l3 3"/></svg>
+            <span>Тохижилт</span>
+          </button>
+          <button type="button" data-tab="other">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>
+            <span>Бусад</span>
+          </button>
         </nav>
-        <div class="side-foot">
-          <span id="whoami" class="whoami"></span>
-          <button id="btn-logout" class="ghost" type="button">Гарах</button>
-        </div>
       </aside>
 
       <div class="workspace">
@@ -71,8 +85,18 @@
             <em id="sync-status">Холболт шалгаж байна…</em>
           </div>
           <div class="top-actions">
-            <button id="btn-refresh" class="ghost" type="button">Шинэчлэх</button>
-            <button id="btn-settings" class="ghost" type="button">Sheet</button>
+            <button id="btn-refresh" class="icon-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.2-5.5"/><path d="M20 4v6h-6"/></svg>
+              <span>Шинэчлэх</span>
+            </button>
+            <button id="btn-settings" class="icon-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V8l-4-5z"/><path d="M14 3v5h5"/></svg>
+              <span>Sheet</span>
+            </button>
+            <button id="btn-logout" class="icon-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7V5a2 2 0 0 1 2-2h7v18h-7a2 2 0 0 1-2-2v-2"/><path d="M4 12h11M12 8l4 4-4 4"/></svg>
+              <span>Гарах</span>
+            </button>
           </div>
         </header>
 
@@ -81,68 +105,50 @@
             <div class="kpis" id="kpis"></div>
             <div class="grid-2">
               <article class="card">
-                <div class="card-head">
-                  <h2>Төсвийн бүтэц</h2>
-                  <span>Ангилал тус бүр</span>
-                </div>
-                <div class="chart-box">
-                  <div class="chart-wrap"><canvas id="chart-pie"></canvas></div>
-                </div>
+                <div class="card-head"><h2>Төсвийн бүтэц</h2><span>Ангилал</span></div>
+                <div class="chart-wrap"><canvas id="chart-pie"></canvas></div>
               </article>
               <article class="card">
-                <div class="card-head">
-                  <h2>Төсөв ба гүйцэтгэл</h2>
-                  <span>Зүйл бүрээр</span>
-                </div>
-                <div class="chart-wrap tall"><canvas id="chart-bar"></canvas></div>
-              </article>
-            </div>
-            <div class="grid-2">
-              <article class="card">
-                <div class="card-head">
-                  <h2>Төлөв</h2>
-                  <span>Гэрээ / судалгаа</span>
-                </div>
+                <div class="card-head"><h2>Төлөв</h2><span>Гэрээ / судалгаа</span></div>
                 <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
-              </article>
-              <article class="card">
-                <div class="card-head">
-                  <h2>Зарлагын явц</h2>
-                  <span>Хуримтлагдсан дүн</span>
-                </div>
-                <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
               </article>
             </div>
             <article class="card">
-              <div class="card-head">
-                <h2>Ерөнхий төсөв</h2>
-                <span>Бүх зүйлийн дэлгэрэнгүй</span>
-              </div>
+              <div class="card-head"><h2>Төсөв / гүйцэтгэл</h2><span>Зүйл бүрээр</span></div>
+              <div class="chart-wrap tall"><canvas id="chart-bar"></canvas></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h2>Зарлагын явц</h2><span>Хуримтлагдсан дүн</span></div>
+              <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h2>Ерөнхий төсөв</h2><span>Дэлгэрэнгүй</span></div>
+              <div class="stack" id="overview-cards"></div>
               <div class="table-wrap" id="overview-table"></div>
             </article>
           </section>
 
           <section id="tab-main" class="tab-panel" hidden>
             <article class="card">
-              <div class="card-head"><h2>1. Үндсэн зардал</h2><span>VIP / Normal PC, ширээ, сандал</span></div>
+              <div class="card-head"><h2>1. Үндсэн зардал</h2><span>VIP / PC, ширээ, сандал</span></div>
               <div id="ledger-main"></div>
             </article>
           </section>
           <section id="tab-server" class="tab-panel" hidden>
             <article class="card">
-              <div class="card-head"><h2>2. Сервер, хэрэгслүүд</h2><span>Компьютер, сүлжээ, software</span></div>
+              <div class="card-head"><h2>2. Сервер, хэрэгслүүд</h2><span>Компьютер, сүлжээ</span></div>
               <div id="ledger-server"></div>
             </article>
           </section>
           <section id="tab-fitout" class="tab-panel" hidden>
             <article class="card">
-              <div class="card-head"><h2>3. Бусад тохижилт, хяналт</h2><span>Камер, засвар, материал</span></div>
+              <div class="card-head"><h2>3. Тохижилт, хяналт</h2><span>Камер, засвар, материал</span></div>
               <div id="ledger-fitout"></div>
             </article>
           </section>
           <section id="tab-other" class="tab-panel" hidden>
             <article class="card">
-              <div class="card-head"><h2>4. Бусад нэмэлт зардал</h2><span>Төсөвлөөгүй зардал</span></div>
+              <div class="card-head"><h2>4. Бусад зардал</h2><span>Төсөвлөөгүй</span></div>
               <div id="ledger-other"></div>
             </article>
           </section>
@@ -153,7 +159,7 @@
     <div id="settings-modal" class="modal" hidden>
       <div class="modal-card">
         <h2>Google Sheet</h2>
-        <p id="settings-status">Таны Sheet аль хэдийн холбогдсон. Өөрчлөлт веб дээр автоматаар харагдана.</p>
+        <p id="settings-status">Sheet холбогдсон. Өөрчлөлт автоматаар харагдана.</p>
         <label>
           Холбоос
           <input id="sheet-input" readonly />
@@ -167,6 +173,6 @@
     </div>
 
     <script src="./assets/js/config.js"></script>
-    <script src="./assets/js/app.js"></script>
+    <script src="./assets/js/app.js?v=3"></script>
   </body>
 </html>
