@@ -100,8 +100,33 @@ function $(id) {
 }
 
 function money(n) {
+  const v = Math.round(Number(n) || 0);
+  const body = Math.abs(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return (v < 0 ? "−" : "") + body + "₮";
+}
+
+function moneyShort(n) {
   const v = Number(n) || 0;
-  return Math.round(v).toLocaleString("fr-FR") + " ₮";
+  const abs = Math.abs(v);
+  if (abs >= 1e6) {
+    const sa = abs / 1e6;
+    const digits = sa >= 100 ? 1 : 2;
+    const s = sa.toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+    return (v < 0 ? "−" : "") + s + " сая₮";
+  }
+  return money(v);
+}
+
+function axisMoney(v) {
+  const n = Number(v) || 0;
+  const abs = Math.abs(n);
+  if (abs >= 1e6) {
+    const sa = abs / 1e6;
+    const digits = sa >= 100 ? 0 : 1;
+    return (n < 0 ? "−" : "") + sa.toFixed(digits).replace(/\.0$/, "") + " сая";
+  }
+  if (abs >= 1e3) return (n / 1e3).toFixed(0) + " мянга";
+  return String(Math.round(n));
 }
 
 function asRatio(n) {
@@ -399,10 +424,10 @@ function renderKpis(model) {
   const remain = totals.budget - totals.actual;
   const spentItems = categories.flatMap((c) => c.items).filter((i) => i.actual > 0).length;
   $("kpis").innerHTML = `
-    <div class="kpi gold"><span>Нийт төсөв</span><b>${money(totals.budget)}</b><em>Ерөнхий төсөв</em></div>
-    <div class="kpi teal"><span>Гүйцэтгэл</span><b>${money(totals.actual)}</b><em>${pct(totals.pct)} зарцуулсан</em></div>
-    <div class="kpi"><span>Үлдэгдэл</span><b>${money(remain)}</b><em>Төсөв − гүйцэтгэл</em></div>
-    <div class="kpi"><span>Гүйлгээ</span><b>${allTransactions(model).length}</b><em>${spentItems} зүйл дээр зарлага</em></div>
+    <div class="kpi gold"><span>Нийт төсөв</span><b>${moneyShort(totals.budget)}</b><em>${money(totals.budget)}</em></div>
+    <div class="kpi teal"><span>Гүйцэтгэл</span><b>${moneyShort(totals.actual)}</b><em>${pct(totals.pct)} зарцуулсан</em></div>
+    <div class="kpi remain"><span>Үлдэгдэл</span><b>${moneyShort(remain)}</b><em>${money(remain)}</em></div>
+    <div class="kpi count"><span>Гүйлгээ</span><b>${allTransactions(model).length}</b><em>${spentItems} зүйл дээр зарлага</em></div>
   `;
 }
 
@@ -416,11 +441,17 @@ function chartTheme() {
   const tick = "#7a7168";
   const text = "#1c1814";
   const grid = "rgba(23,20,16,.08)";
+  const mobile = window.matchMedia("(max-width: 1024px)").matches;
   return {
-    legend: { labels: { color: text, font: { family: "Manrope", size: 12, weight: "700" }, boxWidth: 12, padding: 16 } },
+    legend: {
+      position: "bottom",
+      align: "start",
+      labels: { color: text, font: { family: "Manrope", size: 12, weight: "700" }, boxWidth: 10, padding: 14 }
+    },
     tick,
     text,
-    grid
+    grid,
+    mobile
   };
 }
 
@@ -431,7 +462,6 @@ function renderCharts(model) {
   }
   const theme = chartTheme();
   const cats = model.overview.categories;
-  const palette = ["#1f6b5a", "#315e86", "#c4a06a", "#b42318", "#6d4c7d", "#4a7c59"];
   const catBudget = cats.map((c) => c.items.reduce((s, i) => s + i.budget, 0));
   const items = cats.flatMap((c) => c.items);
 
@@ -439,33 +469,79 @@ function renderCharts(model) {
     type: "doughnut",
     data: {
       labels: cats.map((c) => c.name.replace(/^\d+\.\s*/, "")),
-      datasets: [{ data: catBudget, backgroundColor: palette, borderWidth: 4, borderColor: "#fffdf8", hoverOffset: 6 }]
+      datasets: [{ data: catBudget, backgroundColor: ["#1f6b5a", "#315e86", "#c4a06a", "#b42318"], borderWidth: 0 }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: theme.legend.labels } },
-      cutout: "68%"
+      plugins: { legend: theme.legend },
+      cutout: "70%"
     }
   });
 
+  const barWrap = $("chart-bar").parentElement;
+  barWrap.style.height = Math.max(theme.mobile ? 280 : 360, items.length * (theme.mobile ? 34 : 44) + 88) + "px";
   makeChart("chart-bar", {
     type: "bar",
     data: {
       labels: items.map((i) => i.name),
       datasets: [
-        { label: "Төсөв", data: items.map((i) => i.budget), backgroundColor: "#315e86", borderRadius: 8, borderSkipped: false },
-        { label: "Гүйцэтгэл", data: items.map((i) => i.actual), backgroundColor: "#1f6b5a", borderRadius: 8, borderSkipped: false }
+        {
+          label: "Төсөв",
+          data: items.map((i) => i.budget),
+          backgroundColor: "#c4a06a",
+          borderSkipped: false,
+          borderRadius: 6,
+          barPercentage: 0.78,
+          categoryPercentage: 0.62
+        },
+        {
+          label: "Гүйцэтгэл",
+          data: items.map((i) => i.actual),
+          backgroundColor: "#1f6b5a",
+          borderSkipped: false,
+          borderRadius: 6,
+          barPercentage: 0.78,
+          categoryPercentage: 0.62
+        }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: "y",
-      plugins: { legend: { position: "top", align: "end", labels: theme.legend.labels } },
+      plugins: {
+        legend: theme.legend,
+        tooltip: {
+          backgroundColor: "#171410",
+          titleColor: "#fffaf2",
+          bodyColor: "#e8c9a0",
+          padding: 10,
+          callbacks: {
+            label(ctx) {
+              return " " + ctx.dataset.label + ": " + money(ctx.parsed.x);
+            }
+          }
+        }
+      },
       scales: {
-        x: { ticks: { color: theme.tick, callback: (v) => (v / 1e6) + " сая" }, grid: { color: theme.grid } },
-        y: { ticks: { color: theme.text }, grid: { display: false } }
+        x: {
+          beginAtZero: true,
+          ticks: { color: theme.tick, callback: axisMoney },
+          grid: { color: theme.grid, drawBorder: false }
+        },
+        y: {
+          ticks: {
+            color: theme.text,
+            font: { size: theme.mobile ? 10 : 12, weight: "600" },
+            autoSkip: false,
+            callback(value) {
+              const label = this.getLabelForValue(value);
+              return theme.mobile && label.length > 16 ? label.slice(0, 15) + "…" : label;
+            }
+          },
+          grid: { display: false }
+        }
       }
     }
   });
@@ -484,7 +560,7 @@ function renderCharts(model) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: theme.legend.labels } },
+      plugins: { legend: theme.legend },
       cutout: "62%"
     }
   });
@@ -521,7 +597,7 @@ function renderCharts(model) {
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: theme.tick }, grid: { display: false } },
-        y: { ticks: { color: theme.tick, callback: (v) => (v / 1e6) + " сая" }, grid: { color: theme.grid } }
+        y: { ticks: { color: theme.tick, callback: axisMoney }, grid: { color: theme.grid } }
       }
     }
   });
@@ -532,17 +608,17 @@ function renderOverviewTable(model) {
   model.overview.categories.forEach((cat) => {
     const subBudget = cat.items.reduce((s, i) => s + i.budget, 0);
     const subActual = cat.items.reduce((s, i) => s + i.actual, 0);
-    rows.push(`<tr class="section-row"><td colspan="4">${cat.name}</td><td class="num">${money(subBudget)}</td><td></td><td class="num">${money(subActual)}</td><td colspan="2"></td></tr>`);
+    rows.push(`<tr class="section-row"><td colspan="4">${cat.name}</td><td class="num amt-budget">${money(subBudget)}</td><td></td><td class="num amt-actual">${money(subActual)}</td><td colspan="2"></td></tr>`);
     cat.items.forEach((i) => {
       const p = i.budget ? i.actual / i.budget : 0;
       rows.push(`<tr>
         <td>${i.no}</td>
         <td>${i.name}</td>
         <td class="num">${i.qty}</td>
-        <td class="num">${money(i.unit)}</td>
-        <td class="num">${money(i.budget)}</td>
+        <td class="num amt-unit">${money(i.unit)}</td>
+        <td class="num amt-budget">${money(i.budget)}</td>
         <td class="num">${pct(i.share)}</td>
-        <td class="num">${money(i.actual)}</td>
+        <td class="num amt-actual">${money(i.actual)}</td>
         <td><div class="bar"><i style="width:${Math.min(100, p * 100)}%"></i></div></td>
         <td><span class="badge ${statusClass(i.status)}">${i.status}</span></td>
       </tr>`);
@@ -556,10 +632,25 @@ function renderOverviewTable(model) {
       <th>Явц</th><th>Төлөв</th>
     </tr></thead>
     <tbody>${rows.join("")}
-      <tr class="total-row"><td colspan="4">НИЙТ</td><td class="num">${money(t.budget)}</td>
-      <td class="num">100%</td><td class="num">${money(t.actual)}</td><td>${pct(t.pct)}</td><td></td></tr>
+      <tr class="total-row"><td colspan="4">НИЙТ</td><td class="num amt-budget">${money(t.budget)}</td>
+      <td class="num">100%</td><td class="num amt-actual">${money(t.actual)}</td><td>${pct(t.pct)}</td><td></td></tr>
     </tbody>
   </table>`;
+  if ($("overview-cards")) {
+    $("overview-cards").innerHTML = model.overview.categories.map((cat) => `
+      <div class="stack-group">
+        <h3>${cat.name}</h3>
+        ${cat.items.map((i) => {
+          const p = i.budget ? i.actual / i.budget : 0;
+          return `<div class="stack-item">
+            <div class="row"><b>${i.name}</b><span class="amt-actual">${money(i.actual)}</span></div>
+            <p class="meta"><span class="amt-budget">${money(i.budget)}</span> төсөв · <span class="amt-remain">${money(Math.max(0, i.budget - i.actual))}</span> үлдэгдэл · <span class="badge ${statusClass(i.status)}">${i.status}</span></p>
+            <div class="bar"><i style="width:${Math.min(100, p * 100)}%"></i></div>
+          </div>`;
+        }).join("")}
+      </div>
+    `).join("");
+  }
 }
 
 function renderLedger(id, groups) {
@@ -567,16 +658,28 @@ function renderLedger(id, groups) {
     $(id).innerHTML = `<p class="empty">Мөр хоосон байна. Google Sheet дээр бичилт хийхэд энд гарна.</p>`;
     return;
   }
-  $(id).innerHTML = `<div class="ledger">${groups.map((g) => `
+  const stack = groups.map((g) => {
+    const rows = g.rows.filter((r) => r.desc || r.amount);
+    return `<div class="stack-group">
+      <h3><span>${g.title}</span><span class="amt-actual">${money(g.total)}</span></h3>
+      ${rows.map((r) => `
+        <div class="stack-item">
+          <div class="row"><b>${r.desc || "—"}</b><span class="amt-actual">${money(r.amount)}</span></div>
+          <p class="meta">${r.date || "Огноогүй"} · №${r.no}</p>
+        </div>
+      `).join("") || `<p class="empty">Бичилт алга</p>`}
+    </div>`;
+  }).join("");
+  $(id).innerHTML = `<div class="stack ledger-stack">${stack}</div><div class="ledger">${groups.map((g) => `
     <section>
-      <h3><span>${g.title}</span><span>${money(g.total)}</span></h3>
+      <h3><span>${g.title}</span><span class="amt-actual">${money(g.total)}</span></h3>
       <div class="table-wrap"><table>
         <thead><tr><th>№</th><th>Он сар өдөр</th><th>Тайлбар</th><th class="num">Мөнгөн дүн</th></tr></thead>
         <tbody>
           ${g.rows.filter((r) => r.desc || r.amount).map((r) => `<tr>
-            <td>${r.no}</td><td>${r.date || "—"}</td><td>${r.desc || "—"}</td><td class="num">${money(r.amount)}</td>
+            <td>${r.no}</td><td>${r.date || "—"}</td><td>${r.desc || "—"}</td><td class="num amt-actual">${money(r.amount)}</td>
           </tr>`).join("") || `<tr><td colspan="4" class="empty">Бичилт алга</td></tr>`}
-          <tr class="total-row"><td colspan="3">НИЙТ ДҮН</td><td class="num">${money(g.total)}</td></tr>
+          <tr class="total-row"><td colspan="3">НИЙТ ДҮН</td><td class="num amt-actual">${money(g.total)}</td></tr>
         </tbody>
       </table></div>
     </section>
@@ -646,7 +749,9 @@ function showApp(user) {
   $("login-view").hidden = true;
   $("app-view").hidden = false;
   $("whoami").textContent = user.name || user.username;
-  fillSheetSettings();
+  const isAdmin = user.role === "admin" || user.username === "admin";
+  $("btn-settings").hidden = !isAdmin;
+  if (isAdmin) fillSheetSettings();
   loadLive();
   startRefresh();
 }
@@ -669,7 +774,11 @@ async function handleLogin(event) {
     $("login-error").textContent = "Нэвтрэх нэр эсвэл нууц үг буруу. Зөвхөн 2 хэрэглэгч зөвшөөрөгдөнө.";
     return;
   }
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username, name: user.name }));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+    username: user.username,
+    name: user.name,
+    role: user.role || (user.username === "admin" ? "admin" : "user")
+  }));
   showApp(user);
 }
 
@@ -694,7 +803,13 @@ function switchTab(tab) {
   document.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.hidden = panel.id !== "tab-" + tab;
   });
-  if ($("page-title")) $("page-title").textContent = PAGE_TITLES[tab] || "Зарлагын баримт";
+  if ($("page-title")) $("page-title").textContent = PAGE_TITLES[tab] || "Тайлан";
+  window.scrollTo({ top: 0, behavior: "instant" });
+  if (tab === "overview" && lastModel) {
+    requestAnimationFrame(() => {
+      try { renderCharts(lastModel); } catch (err) { console.error(err); }
+    });
+  }
 }
 
 function bindUi() {
@@ -702,6 +817,8 @@ function bindUi() {
   $("btn-logout").addEventListener("click", logout);
   $("btn-refresh").addEventListener("click", loadLive);
   $("btn-settings").addEventListener("click", () => {
+    const session = currentUser();
+    if (!session || (session.role !== "admin" && session.username !== "admin")) return;
     fillSheetSettings();
     $("settings-modal").hidden = false;
   });
@@ -713,10 +830,20 @@ function bindUi() {
     const btn = e.target.closest("button[data-tab]");
     if (btn) switchTab(btn.dataset.tab);
   });
+  let resizeTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (lastModel) {
+        try { renderCharts(lastModel); } catch (err) { console.error(err); }
+      }
+    }, 220);
+  });
 }
 
 bindUi();
 const session = currentUser();
 if (session && (window.APP_CONFIG.users || []).some((u) => u.username === session.username)) {
-  showApp(session);
+  const full = (window.APP_CONFIG.users || []).find((u) => u.username === session.username);
+  showApp({ ...session, role: session.role || full.role });
 }
