@@ -8,11 +8,13 @@ window.APP_CONFIG = {
     {
       username: "admin",
       name: "Админ",
+      role: "admin",
       passHash: "07d1475e66eb2afa8e317def3e01c10e1d39af99bd10de26edf23d2312ec320f"
     },
     {
       username: "user",
       name: "Хэрэглэгч",
+      role: "user",
       passHash: "519d6c4a704b174327c7979f2fb7ccf03c463e57e59183b78fa8888fc6a168c6"
     }
   ],
